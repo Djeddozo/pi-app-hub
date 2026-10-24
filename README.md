@@ -29,12 +29,12 @@ phone. A storage view explains disk use and asks Claude Code (headless, no tools
 
 A lightweight FastAPI + React/TypeScript dashboard for a Raspberry Pi. The backend is hard-bound to **127.0.0.1:8840**. Remote access uses a dedicated **Tailscale Serve HTTPS port 8840**, without Funnel or public reverse proxies.
 
-## Installed on this Pi
+## Deployment layout
 
 - Private URL: `https://your-pi.your-tailnet.ts.net:8840`
 - Service: `pi-app-hub.service`
 - Installed code: `/opt/pi-app-hub`
-- Editable source: `/home/user/pi-app-hub`
+- Editable source: your checkout (e.g. `~/pi-app-hub`)
 - Registry and manifests: `/var/lib/pi-app-hub/data/registry.sqlite3`, `/var/lib/pi-app-hub/data/manifests/`
 - Archived service units: `/var/lib/pi-app-hub/unit-backups/`
 - Installer configuration backups: `/var/lib/pi-app-hub/install-backups/`
@@ -61,7 +61,7 @@ npm ci
 npm run build
 cd ..
 .venv/bin/pytest -q
-sudo python3 deploy/install.py --user user
+sudo python3 deploy/install.py --user <your-user>
 ```
 
 PNG icons are included in source. To regenerate them from `frontend/public/icon.svg`, run `node render-icons.mjs` from `frontend/` with Chromium installed, then rebuild.
@@ -79,7 +79,7 @@ The application URL is not a public link. Tailnet access policy determines who c
 ## Application discovery
 
 - Docker containers are grouped by `com.docker.compose.project`. Standalone containers remain separate apps.
-- Custom, regular service files directly under `/etc/systemd/system` and the current user's `~/.config/systemd/user` are discovered. Distribution services, symlink aliases, template units and ordinary processes are excluded. User units use the explicit `systemd-user` source (for example, the existing HelloAsso Ticket Watcher) and can be started, stopped or restarted; Pi App Hub does not remove user unit files from the dashboard.
+- Custom, regular service files directly under `/etc/systemd/system` and the current user's `~/.config/systemd/user` are discovered. Distribution services, symlink aliases, template units and ordinary processes are excluded. User units use the explicit `systemd-user` source and can be started, stopped or restarted; Pi App Hub does not remove user unit files from the dashboard.
 - Manual JSON manifests are watched in the manifests directory. The UI can create these registrations.
 - Docker events trigger rescans, as do manifest changes. Every 60 seconds discovery runs as a fallback. Resource samples and the UI refresh every 5 seconds; systemd app counters refresh on discovery.
 - Successful discovery marks absent apps **Missing** without deleting metadata. Provider failures retain last-known state and show the source offline. A return from Missing restores the app automatically.
@@ -93,9 +93,9 @@ Example manual manifest:
   "id": "my-tool",
   "name": "My Tool",
   "icon": "code",
-  "project_path": "/home/user/my-tool",
+  "project_path": "/home/pi/my-tool",
   "web_url": "https://your-pi.your-tailnet.ts.net:9000",
-  "data_directories": ["/home/user/my-tool/data"],
+  "data_directories": ["/home/pi/my-tool/data"],
   "protected": false
 }
 ```
